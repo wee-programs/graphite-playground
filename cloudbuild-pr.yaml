@@ -1,0 +1,16 @@
+steps:
+  # Build the container image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-f",
+        "./config/docker/Dockerfile",
+        "-t",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA",
+        ".",
+      ]
+substitutions:
+  _SERVICE_NAME: graphite-playground
+options:
+  logging: CLOUD_LOGGING_ONLY

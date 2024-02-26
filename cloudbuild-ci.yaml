@@ -1,0 +1,44 @@
+steps:
+  # Build the container image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-f",
+        "./config/docker/Dockerfile",
+        "-t",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA",
+        "-t",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:latest",
+        ".",
+      ]
+  # Push the container image to Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "-a",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME",
+      ]
+  # Deploy container image to Cloud Run
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "$_SERVICE_NAME"
+      - "--image"
+      - "europe-west1-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA"
+      - "--region"
+      - "europe-west1"
+      - "--port"
+      - "80"
+      - "--memory"
+      - "128Mi"
+      - "--max-instances"
+      - "1"
+      - "--allow-unauthenticated"
+substitutions:
+  _SERVICE_NAME: graphite-playground
+options:
+  logging: CLOUD_LOGGING_ONLY
